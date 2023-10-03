@@ -1,0 +1,24 @@
+<h1>Listing Sources</h1>
+
+<%= if @live_action in [:new, :edit] do %>
+  <.modal return_to={Routes.source_index_path(@socket, :index)}>
+    <.live_component
+      module={CollectorWeb.SourceLive.FormComponent}
+      id={@source.id || :new}
+      title={@page_title}
+      action={@live_action}
+      source={@source}
+      return_to={Routes.source_index_path(@socket, :index)}
+    />
+  </.modal>
+<% end %>
+
+<div>
+  <div id="sources">
+    <%= for source <- @sources do %>
+      <%= live_component CollectorWeb.SourceLive.SourceComponent, id: source.id, source: source %>
+    <% end %>
+  </div>
+</div>
+
+<span><%= live_patch "New Source", to: Routes.source_index_path(@socket, :new) %></span>
