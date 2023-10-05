@@ -25,7 +25,7 @@ defmodule Collector.Recordings do
   end
 
   def list_users() do
-    from(s in Users)
+    from(s in User)
     |> Repo.all
   end
 
@@ -46,19 +46,16 @@ defmodule Collector.Recordings do
     %Source{}
     |> Source.changeset(attrs)
     |> Repo.insert()
-    |> broadcast(:source_created)
   end
 
   def update_source(%Source{} = source, attrs) do
     source
     |> Source.changeset(attrs)
     |> Repo.update()
-    |> broadcast(:source_updated)
   end
 
   def delete_source(%Source{} = source) do
     Repo.delete(source)
-    |> broadcast(:source_deleted)
   end
 
   def change_source(%Source{} = source, attrs \\ %{}) do
@@ -66,10 +63,7 @@ defmodule Collector.Recordings do
   end
 
   def list_data(source_id) do
-    Data
-    |> where([p], p.source_id == ^source_id)
-    |> Repo.all
-#    |> Enum.map(&{elem(NaiveDateTime.to_gregorian_seconds(&1.timestamp), 0),  elem(Integer.parse(&1.value), 0)})
+    with xs = [_|_] <- Data |> where([p], p.source_id == ^source_id) |> Repo.all do xs else _ -> [%{timestamp: NaiveDateTime.utc_now(), value: "0"}] end  
     |> Enum.map(&{&1.timestamp,  elem(Integer.parse(&1.value), 0)})
   end
 
@@ -81,16 +75,5 @@ defmodule Collector.Recordings do
 
   def change_data(%Data{} = data, attrs \\ %{}) do
     Data.changeset(data, attrs)
-  end
-
-  def subscribe do
-    Phoenix.PubSub.subscribe(Collector.PubSub, "sources")
-  end
-
-  defp broadcast({:error, _reason} = error, _event), do: error
-
-  defp broadcast({:ok, source}, event) do
-    Phoenix.PubSub.broadcast(Collector.PubSub, "sources", {event, source})
-    {:ok, source}
   end
 end

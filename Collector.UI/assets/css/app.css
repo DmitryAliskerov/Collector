@@ -1,6 +1,7 @@
 /* This file is for your main application CSS */
 @import "./styles.css";
 @import "./contex.css";
+@import "./switch.css";
 
 /* Alerts and form errors used by phx.new */
 .alert {

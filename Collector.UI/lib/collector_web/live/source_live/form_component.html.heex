@@ -8,10 +8,17 @@
     phx-target={@myself}
     phx-change="validate"
     phx-submit="save">
+
+    <%= hidden_input f, :type, value: @source.type %>
+    <%= hidden_input f, :user_id, value: @source.user_id %>
   
     <%= label f, :target %>
     <%= text_input f, :value %>
     <%= error_tag f, :value %>
+
+    <%= label f, :interval %>
+    <%= select f, :interval, [{"10 s", 10}, {"20 s", 20}, {"30 s", 30}] %>
+    <%= error_tag f, :interval %>
   
     <div>
       <%= submit "Save", phx_disable_with: "Saving..." %>

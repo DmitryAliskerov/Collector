@@ -1,7 +1,7 @@
 defmodule Collector.Worker.Ping do
   use Oban.Worker
 
-  @impl true
+  @impl Oban.Worker
   def perform(%{args: %{"source_id" => source_id, "url" => url, "interval" => interval}}) do
 
     %{source_id: source_id, url: url, interval: interval}

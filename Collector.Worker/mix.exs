@@ -26,7 +26,7 @@ defmodule Worker.MixProject do
       {:libcluster, "~> 3.3"},
       {:ecto_sql, "~> 3.6"},
       {:postgrex, ">= 0.0.0"},
-      {:oban, "~> 2.16"},
+      {:oban, "~> 2.16.2"},
       {:toolshed, ">= 0.0.0"}
     ]
   end

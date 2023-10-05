@@ -18,7 +18,7 @@ Recordings.create_source(%{
   user_id: 1,
   type: "URL",
   value: "google.ru",
-  interval: "60"
+  interval: "10"
 })
 
 Recordings.create_source(%{

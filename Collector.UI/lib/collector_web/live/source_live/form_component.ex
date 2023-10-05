@@ -2,7 +2,6 @@ defmodule CollectorWeb.SourceLive.FormComponent do
   use CollectorWeb, :live_component
 
   alias Collector.Recordings
-  alias Collector.Recordings.Source
 
   @impl true
   def update(%{source: source} = assigns, socket) do
@@ -28,41 +27,25 @@ defmodule CollectorWeb.SourceLive.FormComponent do
     save_source(socket, socket.assigns.action, source_params)
   end
 
-#  defp save_source(socket, :edit, source_params) do
-#    case Recordings.update_source(socket.assigns.source, source_params) do
-#      {:ok, _source} ->
-#        {:noreply,
-#         socket
-#         |> put_flash(:info, "source updated successfully")
-#         |> push_redirect(to: socket.assigns.return_to)}
-#
-#      {:error, %Ecto.Changeset{} = changeset} ->
-#        {:noreply, assign(socket, :changeset, changeset)}
-#    end
-#  end
-
   defp save_source(socket, :new, source_params) do
-
-    IO.inspect socket
-
-    user_id = 1
-
     source = %{
-      user_id: user_id,
-      type: "URL",
+      user_id: source_params["user_id"],
+      type: source_params["type"],
       value: source_params["value"],
       options: "",
-      interval: 10
+      interval: source_params["interval"]
     }
 
-    IO.inspect source_params
-    IO.inspect source
-
     case Recordings.create_source(source) do
-      {:ok, _source} ->
+      {:ok, created_source} ->
+
+        task = Task.async(fn -> :erpc.call(:"worker@127.0.0.1", Collector.Workers, :enable_source, [created_source.id]) end)
+        Task.await(task, 5000)
+        |> IO.inspect
+
         {:noreply,
          socket
-         |> put_flash(:info, "Album created successfully")
+         |> put_flash(:info, "Source created successfully.")
          |> push_redirect(to: socket.assigns.return_to)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
