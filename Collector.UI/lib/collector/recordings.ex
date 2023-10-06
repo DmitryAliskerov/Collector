@@ -9,6 +9,11 @@ defmodule Collector.Recordings do
   alias Collector.Recordings.Source
   alias Collector.Recordings.Data
 
+  def clear_jobs() do
+    query = "TRUNCATE TABLE oban_jobs RESTART IDENTITY CASCADE"
+    Ecto.Adapters.SQL.query!(Repo, query, [])
+  end
+
   def clear_users() do
     query = "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
     Ecto.Adapters.SQL.query!(Repo, query, [])

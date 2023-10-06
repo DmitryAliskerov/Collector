@@ -8,15 +8,10 @@ defmodule CollectorWeb.SourceLive.Index do
   def mount(_params, _session, socket) do
     sources = list_sources(socket.assigns.current_user.id)
 
-    IO.inspect "+++++++++++++++++++++++++++++++++++++++++++++++++"
-
     for source <- sources do
       send(self(), {:load_data, source.id, get_data_id(source.id)})
     end
 
-#    socket =
-#      assign_defaults(_session, socket)
-    
     {:ok, assign(socket, :sources, sources), temporary_assigns: [sources: []]}
   end
 
@@ -55,7 +50,11 @@ defmodule CollectorWeb.SourceLive.Index do
 
     {:ok, _} = Recordings.delete_source(source)
 
-    {:noreply, assign(socket, :sources, Recordings.list_sources(socket.assigns.current_user.id))}
+    {:noreply, assign(
+      socket
+       |> put_flash(:info, "Source deleted successfully."),
+      :sources,
+      Recordings.list_sources(socket.assigns.current_user.id))}
   end
 
   def handle_event("toggle-switch", %{"id" => id}, socket) do

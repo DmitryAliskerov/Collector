@@ -1,23 +1,28 @@
 defmodule CollectorWeb.SourceLive.DataComponent do
   use CollectorWeb, :live_component
 
-  alias Collector.Recordings
   alias Contex.Plot
   alias Contex.LinePlot
 
   def update(assigns, socket) do
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign_source_data()
-     |> assign_dataset()
-     |> assign_chart()
-     |> assign_chart_svg()}
+    if assigns[:loading] do
+      {:ok,
+       socket
+       |> assign(assigns)}
+    else
+      {:ok,
+       socket
+       |> assign(assigns)
+       |> assign_source_data(assigns.results)
+       |> assign_dataset()
+       |> assign_chart()
+       |> assign_chart_svg()}
+    end
   end
 
-  defp assign_source_data(socket) do
+  defp assign_source_data(socket, results) do
     socket
-    |> assign(:source_data, Recordings.list_data(socket.assigns.source_id))
+    |> assign(:source_data, results)
   end
 
   defp datetime_formatter(d) do

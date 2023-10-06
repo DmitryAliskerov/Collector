@@ -1,5 +1,6 @@
 alias Collector.Recordings
 
+Recordings.clear_jobs()
 Recordings.clear_users()
 Recordings.clear_sources()
 Recordings.clear_data()

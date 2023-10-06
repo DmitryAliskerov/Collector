@@ -2,6 +2,7 @@
 @import "./styles.css";
 @import "./contex.css";
 @import "./switch.css";
+@import "./trash.css";
 
 /* Alerts and form errors used by phx.new */
 .alert {
