@@ -10,7 +10,8 @@ defmodule Collector.Worker.Application do
     children = [
       {Cluster.Supervisor, [topologies(), [name: SimpleCluster.ClusterSupervisor]]},
       Collector.Repo,
-      {Oban, Application.fetch_env!(:worker, Oban)}
+      {Oban, Application.fetch_env!(:worker, Oban)},
+      Collector.Workers
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

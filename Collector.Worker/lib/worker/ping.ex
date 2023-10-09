@@ -2,9 +2,9 @@ defmodule Collector.Worker.Ping do
   use Oban.Worker
 
   @impl Oban.Worker
-  def perform(%{args: %{"source_id" => source_id, "url" => url, "interval" => interval}}) do
+  def perform(%{args: %{"source_id" => source_id, "url" => url, "interval" => interval, "user_id" => user_id}}) do
 
-    %{source_id: source_id, url: url, interval: interval}
+    %{source_id: source_id, url: url, interval: interval, user_id: user_id}
     |> new(schedule_in: interval)
     |> Oban.insert()
 
@@ -18,25 +18,16 @@ defmodule Collector.Worker.Ping do
           value: "#{result}"
         })
 
-        #IO.inspect "Record inserted."
+
+        Collector.Workers.add_result(user_id, source_id)
+        Collector.Workers.flush_results()
     end
 
     :ok
   end
 
   def perform(%{args: %{"url" => url}}) do
-    ping(url)
+    {:ok, Toolshed.tcping_once(url)}
   end
 
-  defp ping(url) do
-    #IO.inspect "Emulate ping: #{url}"
-    #delay = Enum.random(1000..2000)
-    #Process.sleep(delay)
-
-    response_time = Toolshed.tcping_once url
-    
-    #IO.inspect "time: #{response_time}"
-
-    {:ok, response_time}
-  end
 end

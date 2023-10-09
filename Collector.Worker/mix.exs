@@ -27,15 +27,14 @@ defmodule Worker.MixProject do
       {:ecto_sql, "~> 3.6"},
       {:postgrex, ">= 0.0.0"},
       {:oban, "~> 2.16.2"},
-      {:toolshed, ">= 0.0.0"}
+      {:toolshed, ">= 0.0.0"}#,
+      #{:ets, "~> 0.9.0"}
     ]
   end
 
   defp aliases do
     [
       setup: ["deps.get", "ecto.create", "ecto.migrate"],
-      run: ["run -e Collector.Workers.run()"],
-      "phx.server": ["run"]
     ]
   end  
 end
