@@ -9,7 +9,14 @@ defmodule CollectorWeb.SourceLive.Index do
     sources = list_sources(socket.assigns.current_user.id)
 
     for source <- sources do
-      send(self(), {:load_data, source.id, get_data_id(source.id)})
+      send(self(), {:load_data, source.id})
+    end
+
+    process_name = :"#{__MODULE__}-#{socket.assigns.current_user.id}"
+    case Process.whereis(process_name) do
+      nil -> Process.register(self(), process_name)
+           IO.inspect "Process name: #{process_name} registred."
+      _ -> IO.inspect "Process name: #{process_name} already registred."
     end
 
     {:ok, assign(socket, :sources, sources), temporary_assigns: [sources: []]}
@@ -66,29 +73,19 @@ defmodule CollectorWeb.SourceLive.Index do
     {:noreply, socket}
   end
 
+  @impl true
   def handle_info({:toggle_switch_info, id}, socket) do
+    IO.inspect "Enable/Disable source."
+
     source = Recordings.get_source!(id)
     new_enabled = !source.enabled
 
-    task = Task.async(fn -> :erpc.call(:"worker@127.0.0.1", Collector.Workers, ternary(new_enabled, :enable_source, :disable_source), [id]) end)
+    :erpc.call(:"worker@127.0.0.1", Collector.Workers, ternary(new_enabled, :call_enable_source, :call_disable_source), [id])
 
     case Recordings.update_source(source, %{enabled: new_enabled}) do
       {:ok, _} ->
-
-        IO.inspect "Enable/Disable source."
-        source_switch_result = Task.await(task, 25000)
-        IO.inspect source_switch_result
-
         send_update CollectorWeb.SourceLive.SwitchComponent, id: get_switch_id(id), enabled: new_enabled, waiting: false
-
-        case source_switch_result do
-          {:ok, _} ->
-            {:noreply, socket |> put_flash(:info, "Source updated successfully.")}
-
-          _ ->
-            {:noreply, socket |> put_flash(:warning, "Source updated but worker not stopped.")}
-        end
-
+        {:noreply, socket}
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}
     end
@@ -97,11 +94,10 @@ defmodule CollectorWeb.SourceLive.Index do
   end
 
   @impl true
-  def handle_info({:load_data, source_id, source_data_id}, socket) do
-    Process.send_after(self(), {:load_data, source_id, source_data_id}, 10 * 1000)
-
+  def handle_info({:load_data, source_id}, socket) do
     results = list_data(source_id)
-    send_update CollectorWeb.SourceLive.DataComponent, id: source_data_id, loading: false, results: results
+    send_update CollectorWeb.SourceLive.DataComponent, id: "source-#{source_id}-data", loading: false, results: results
+    IO.inspect "Source update received: #{source_id}"
     
     {:noreply, socket}
   end  

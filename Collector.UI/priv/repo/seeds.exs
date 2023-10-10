@@ -40,7 +40,7 @@ Recordings.create_source(%{
   user_id: 2,
   type: "URL",
   value: "google.com",
-  interval: "60"
+  interval: "10"
 })
 
 Recordings.create_source(%{
