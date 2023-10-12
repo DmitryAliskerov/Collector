@@ -12,12 +12,7 @@ defmodule CollectorWeb.SourceLive.Index do
       send(self(), {:load_data, source.id})
     end
 
-    process_name = :"#{__MODULE__}-#{socket.assigns.current_user.id}"
-    case Process.whereis(process_name) do
-      nil -> Process.register(self(), process_name)
-           IO.inspect "Process name: #{process_name} registred."
-      _ -> IO.inspect "Process name: #{process_name} already registred."
-    end
+    Phoenix.PubSub.subscribe(Collector.PubSub, "user:#{socket.assigns.current_user.id}")
 
     {:ok, assign(socket, :sources, sources), temporary_assigns: [sources: []]}
   end
@@ -94,10 +89,16 @@ defmodule CollectorWeb.SourceLive.Index do
   end
 
   @impl true
+  def handle_info({:source_ids_for_update, source_ids}, socket) do
+    Enum.each(source_ids, fn source_id -> send(self(), {:load_data, source_id}) end)
+    
+    {:noreply, socket}
+  end  
+
   def handle_info({:load_data, source_id}, socket) do
     results = list_data(source_id)
     send_update CollectorWeb.SourceLive.DataComponent, id: "source-#{source_id}-data", loading: false, results: results
-    IO.inspect "Source update received: #{source_id}"
+    IO.inspect "Source: #{source_id} updated."
     
     {:noreply, socket}
   end  

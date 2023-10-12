@@ -49,30 +49,17 @@ defmodule CollectorWeb.Endpoint do
   plug CollectorWeb.Router
 
   def update_user_sources(user_sources_update) do
-    IO.inspect "user_sources_update: #{inspect user_sources_update} received."
+    IO.inspect "Receive user_sources_update: #{inspect user_sources_update}"
 
-    process_pattern = "Elixir.CollectorWeb.SourceLive.Index"
-
-    active_user_ids = Process.registered()
-    |> Enum.map(fn process_name -> to_string(process_name) end)
-    |> Enum.filter(fn process_name_string -> String.starts_with?(process_name_string, process_pattern) end)
-    |> Enum.map(fn process_name_string -> String.split(process_name_string, "-") |> Enum.at(1) |> String.to_integer end)
-
-    actual_user_source_update = user_sources_update
-    |> Enum.filter(fn user_source -> Enum.member?(active_user_ids, elem(user_source, 0)) end)
-    |> IO.inspect
-    |> Enum.each(fn actual_user_source -> send_update(process_pattern, actual_user_source) end)
+    Enum.each(user_sources_update, fn user_source_update -> send_update(user_source_update) end)
   end
 
-  defp send_update(process_pattern, actual_user_source) do
-    user_id = elem(actual_user_source, 0)
-    source_ids = elem(actual_user_source, 1)
-    pid = :"#{process_pattern}-#{user_id}"
+  defp send_update(user_source_update) do
+    user_id = elem(user_source_update, 0)
+    source_ids = elem(user_source_update, 1)
 
-    source_ids
-    |> Enum.each(fn source_id -> send(pid, {:load_data, source_id}) 
-                                 IO.inspect "Send update to: #{pid}, source_id: #{source_id}"
-    end)
+    IO.inspect "Broadcast for user_id: #{user_id}, source_ids: #{inspect source_ids}"
+    Phoenix.PubSub.broadcast(Collector.PubSub, "user:#{user_id}", {:source_ids_for_update, source_ids})
   end
 
 end
