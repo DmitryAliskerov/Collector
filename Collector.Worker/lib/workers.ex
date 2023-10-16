@@ -26,12 +26,16 @@ defmodule Collector.Workers do
   def handle_cast(operation, state) do
     case operation do
       {:add_result, user_id, source_id} -> :ets.insert(:user_source_update, {user_id, source_id})
-      {:send_result, user_source_update_raw} -> user_source_update = user_source_update_raw
-					    |> Enum.group_by(fn {x, _} -> x end)
-					    |> Enum.map(fn {x, y} -> {x, y |> Enum.reduce([], fn x, acc -> [elem(x, 1) | acc] end) } end)
-					    IO.inspect "SEND user_source_update: #{inspect user_source_update}"
-      					    task = Task.async(fn -> :erpc.call(:"ui@127.0.0.1", CollectorWeb.Endpoint, :update_user_sources, [user_source_update]) end)
-					    Task.await(task)
+      {:send_result, user_source_update_raw} -> if Enum.member?(Node.list(), :"ui@127.0.0.1") do
+						  user_sources_data = user_source_update_raw
+					          |> Enum.group_by(fn {x, _} -> x end)
+					          |> Enum.map(fn {x, y} -> {x, y |> Enum.reduce([], fn x, acc -> [elem(x, 1) | acc] end) } end)
+
+						  :erpc.call(:"ui@127.0.0.1", Collector.UpdateReceiver, :update_user_sources, [user_sources_data])
+						  IO.inspect "SEND user_sources_data: #{inspect user_sources_data}"
+						else
+						  IO.inspect "Cannot send update to :\"ui@127.0.0.1\". Node not in connected nodes: #{inspect Node.list()}"
+						end
       _ -> {:stop, "Not implemented", state}
     end
     
@@ -80,16 +84,6 @@ defmodule Collector.Workers do
     {:ok, args}
   end
 
-  defp send_user_source_update() do
-    receive do
-      after
-        @send_user_source_update_interval ->
-          GenServer.call(__MODULE__, :flush_results)
-
-          send_user_source_update()
-    end
-  end
-
   defp enable_source(id) do
     delay = Enum.random(50..200)
     Process.sleep(delay)
@@ -129,6 +123,16 @@ defmodule Collector.Workers do
         end
       _ ->
         {:error, "Unknown source type: #{source.type}"}
+    end
+  end
+
+  defp send_user_source_update() do
+    receive do
+      after
+        @send_user_source_update_interval ->
+          GenServer.call(__MODULE__, :flush_results)
+
+          send_user_source_update()
     end
   end
 

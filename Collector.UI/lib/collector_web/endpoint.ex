@@ -48,18 +48,4 @@ defmodule CollectorWeb.Endpoint do
   plug Plug.Session, @session_options
   plug CollectorWeb.Router
 
-  def update_user_sources(user_sources_update) do
-    IO.inspect "Receive user_sources_update: #{inspect user_sources_update}"
-
-    Enum.each(user_sources_update, fn user_source_update -> send_update(user_source_update) end)
-  end
-
-  defp send_update(user_source_update) do
-    user_id = elem(user_source_update, 0)
-    source_ids = elem(user_source_update, 1)
-
-    IO.inspect "Broadcast for user_id: #{user_id}, source_ids: #{inspect source_ids}"
-    Phoenix.PubSub.broadcast(Collector.PubSub, "user:#{user_id}", {:source_ids_for_update, source_ids})
-  end
-
 end

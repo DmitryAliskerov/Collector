@@ -9,9 +9,10 @@ defmodule Collector.Application do
   def start(_type, _args) do
     children = [
       {Cluster.Supervisor, [topologies(), [name: SimpleCluster.ClusterSupervisor]]},
-      Collector.Repo,
-      CollectorWeb.Telemetry,
       {Phoenix.PubSub, name: Collector.PubSub},
+      Collector.Repo,
+      Collector.UpdateReceiver,
+      CollectorWeb.Telemetry,
       CollectorWeb.Endpoint
     ]
 
