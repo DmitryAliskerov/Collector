@@ -45,8 +45,7 @@ defmodule CollectorWeb.SourceLive.Index do
     source = Recordings.get_source!(id)
 
     if source.enabled do
-      task = Task.async(fn -> :erpc.call(:"worker@127.0.0.1", Collector.Workers, :disable_source, [source.id]) end)
-      Task.await(task, 5000)
+      :erpc.call(:"worker@127.0.0.1", Collector.UpdateReceiver, :call_disable_source, [source.id])
       |> IO.inspect
     end
 
@@ -75,7 +74,7 @@ defmodule CollectorWeb.SourceLive.Index do
     source = Recordings.get_source!(id)
     new_enabled = !source.enabled
 
-    :erpc.call(:"worker@127.0.0.1", Collector.Workers, ternary(new_enabled, :call_enable_source, :call_disable_source), [id])
+    :erpc.call(:"worker@127.0.0.1", Collector.UpdateReceiver, ternary(new_enabled, :call_enable_source, :call_disable_source), [id])
 
     case Recordings.update_source(source, %{enabled: new_enabled}) do
       {:ok, _} ->

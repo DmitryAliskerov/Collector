@@ -18,7 +18,7 @@ defmodule Collector.Worker.Ping do
           value: "#{result}"
         })
 
-        Collector.Workers.cast_add_result(user_id, source_id)
+        Collector.UpdatePusher.cast_add_result(user_id, source_id)
     end
 
     :ok

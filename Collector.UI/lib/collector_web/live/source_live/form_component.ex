@@ -39,8 +39,7 @@ defmodule CollectorWeb.SourceLive.FormComponent do
     case Recordings.create_source(source) do
       {:ok, created_source} ->
 
-        task = Task.async(fn -> :erpc.call(:"worker@127.0.0.1", Collector.Workers, :enable_source, [created_source.id]) end)
-        Task.await(task, 5000)
+        :erpc.call(:"worker@127.0.0.1", Collector.UpdateReceiver, :call_enable_source, [created_source.id])
         |> IO.inspect
 
         {:noreply,

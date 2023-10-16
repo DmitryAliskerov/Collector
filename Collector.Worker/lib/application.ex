@@ -8,8 +8,10 @@ defmodule Collector.Worker.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      {Cluster.Supervisor, [topologies(), [name: SimpleCluster.ClusterSupervisor]]},
       Collector.Repo,
+      Collector.UpdateReceiver,
+      Collector.UpdatePusher,
+      {Cluster.Supervisor, [topologies(), [name: SimpleCluster.ClusterSupervisor]]},
       {Oban, Application.fetch_env!(:worker, Oban)},
       Collector.Workers
     ]

@@ -15,6 +15,13 @@ Recordings.create_user(%{
   password: "qwe123qwe123"
 })
 
+#Recordings.create_source_n(%{
+#  user_id: 1,
+#  type: "URL",
+#  value: "google.ru",
+#  interval: "10"
+#}, 100)
+ 
 Recordings.create_source(%{
   user_id: 1,
   type: "URL",

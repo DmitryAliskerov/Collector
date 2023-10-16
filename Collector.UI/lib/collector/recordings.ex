@@ -53,6 +53,14 @@ defmodule Collector.Recordings do
     |> Repo.insert()
   end
 
+  def create_source_n(attrs \\ %{}, n) do
+    Enum.each(0..n, fn(_x) ->
+      %Source{}
+      |> Source.changeset(attrs)
+      |> Repo.insert()
+    end)
+  end
+
   def update_source(%Source{} = source, attrs) do
     source
     |> Source.changeset(attrs)
