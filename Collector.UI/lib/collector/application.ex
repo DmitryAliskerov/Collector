@@ -11,7 +11,7 @@ defmodule Collector.Application do
       {Cluster.Supervisor, [topologies(), [name: SimpleCluster.ClusterSupervisor]]},
       {Phoenix.PubSub, name: Collector.PubSub},
       Collector.Repo,
-      Collector.UpdateReceiver,
+      Collector.ResultUpdater,
       CollectorWeb.Telemetry,
       CollectorWeb.Endpoint
     ]

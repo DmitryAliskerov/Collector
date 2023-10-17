@@ -23,11 +23,10 @@ defmodule CollectorWeb.SourceLive.FormComponent do
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
+  @impl true
   def handle_event("save", %{"source" => source_params}, socket) do
-    save_source(socket, socket.assigns.action, source_params)
-  end
+    IO.inspect "Create source."
 
-  defp save_source(socket, :new, source_params) do
     source = %{
       user_id: source_params["user_id"],
       type: source_params["type"],
@@ -38,17 +37,9 @@ defmodule CollectorWeb.SourceLive.FormComponent do
 
     case Recordings.create_source(source) do
       {:ok, created_source} ->
-
-        :erpc.call(:"worker@127.0.0.1", Collector.UpdateReceiver, :call_enable_source, [created_source.id])
-        |> IO.inspect
-
-        {:noreply,
-         socket
-         |> put_flash(:info, "Source created successfully.")
-         |> push_redirect(to: socket.assigns.return_to)}
-
+         Phoenix.PubSub.direct_broadcast(:"worker@127.0.0.1", Collector.PubSub, "source_changer", {:create_source, created_source})
+         {:noreply, socket |> push_redirect(to: socket.assigns.return_to)}
       {:error, %Ecto.Changeset{} = changeset} ->
-        IO.inspect "error"
         {:noreply, assign(socket, changeset: changeset)}
     end
   end

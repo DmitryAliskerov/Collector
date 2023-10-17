@@ -24,11 +24,11 @@ defmodule Worker.MixProject do
   defp deps do
     [
       {:libcluster, "~> 3.3"},
+      {:phoenix, "~> 1.6.7"},
       {:ecto_sql, "~> 3.6"},
       {:postgrex, ">= 0.0.0"},
       {:oban, "~> 2.16.2"},
-      {:toolshed, ">= 0.0.0"}#,
-      #{:ets, "~> 0.9.0"}
+      {:toolshed, ">= 0.0.0"}
     ]
   end
 

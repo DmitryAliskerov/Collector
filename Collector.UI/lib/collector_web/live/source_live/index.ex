@@ -12,7 +12,8 @@ defmodule CollectorWeb.SourceLive.Index do
       send(self(), {:load_data, source.id})
     end
 
-    Phoenix.PubSub.subscribe(Collector.PubSub, "user:#{socket.assigns.current_user.id}")
+    Phoenix.PubSub.subscribe(Collector.PubSub, "result_update_user:#{socket.assigns.current_user.id}")
+    Phoenix.PubSub.subscribe(Collector.PubSub, "change_source_answer")
 
     {:ok, assign(socket, :sources, sources), temporary_assigns: [sources: []]}
   end
@@ -41,53 +42,81 @@ defmodule CollectorWeb.SourceLive.Index do
   end
 
   @impl true
-  def handle_event("delete", %{"id" => id}, socket) do
-    source = Recordings.get_source!(id)
+  def handle_info({:create_source_ok, source}, socket) do
+    IO.inspect "Source was created. Source_id: #{source.id}"
 
-    if source.enabled do
-      :erpc.call(:"worker@127.0.0.1", Collector.UpdateReceiver, :call_disable_source, [source.id])
-      |> IO.inspect
-    end
-
-    {:ok, _} = Recordings.delete_source(source)
-
-    {:noreply, assign(
-      socket
-       |> put_flash(:info, "Source deleted successfully."),
-      :sources,
-      Recordings.list_sources(socket.assigns.current_user.id))}
+    {:noreply, socket}
   end
 
-  def handle_event("toggle-switch", %{"id" => id}, socket) do
-
-    send_update CollectorWeb.SourceLive.SwitchComponent, id: get_switch_id(id), waiting: true
-
-    send(self(), {:toggle_switch_info, id})
+  def handle_info({:switch_source_error, source}, socket) do
+    IO.inspect "Source was not created."
 
     {:noreply, socket}
   end
 
   @impl true
-  def handle_info({:toggle_switch_info, id}, socket) do
-    IO.inspect "Enable/Disable source."
-
-    source = Recordings.get_source!(id)
-    new_enabled = !source.enabled
-
-    :erpc.call(:"worker@127.0.0.1", Collector.UpdateReceiver, ternary(new_enabled, :call_enable_source, :call_disable_source), [id])
-
-    case Recordings.update_source(source, %{enabled: new_enabled}) do
+  def handle_info({:switch_source_ok, source, new_enabled_state}, socket) do
+    case Recordings.update_source(source, %{enabled: new_enabled_state}) do
       {:ok, _} ->
-        send_update CollectorWeb.SourceLive.SwitchComponent, id: get_switch_id(id), enabled: new_enabled, waiting: false
+        IO.inspect "Source was updated. Source_id: #{source.id}, new_enabled_state: #{new_enabled_state}"
+        send_update CollectorWeb.SourceLive.SwitchComponent, id: get_switch_id(source.id), enabled: new_enabled_state, waiting: false
         {:noreply, socket}
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}
     end
+  end
+
+  def handle_event("switch-source", %{"id" => source_id}, socket) do
+    IO.inspect "Enable/Disable source. Source_id: #{source_id}"
+
+    send_update CollectorWeb.SourceLive.SwitchComponent, id: CollectorWeb.SourceLive.Index.get_switch_id(source_id), waiting: true
+
+    source = Recordings.get_source!(source_id)
+    new_enabled_state = !source.enabled
+
+    Phoenix.PubSub.direct_broadcast(:"worker@127.0.0.1", Collector.PubSub, "source_changer", {:switch_source, source, new_enabled_state})
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:switch_source_error, source, new_enabled_state}, socket) do
+    IO.inspect "Source was not updated. Source_id: #{source.id}, new_enabled_state: #{new_enabled_state}"
+    send_update CollectorWeb.SourceLive.SwitchComponent, id: get_switch_id(source.id), waiting: false
 
     {:noreply, socket}
   end
 
   @impl true
+  def handle_event("delete-source", %{"id" => source_id}, socket) do
+    IO.inspect "Delete source. Source_id: #{source_id}"
+
+    source = Recordings.get_source!(source_id)
+
+    if source.enabled do
+      Phoenix.PubSub.direct_broadcast(:"worker@127.0.0.1", Collector.PubSub, "source_changer", {:delete_source, source})
+    else
+      send(self(), {:delete_source_ok, source})
+    end
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({:delete_source_ok, source}, socket) do
+    case Recordings.delete_source(source) do
+      {:ok, _} ->
+        IO.inspect "Source was deleted. Source_id: #{source.id}"
+        {:noreply, assign(socket, :sources, Recordings.list_sources(socket.assigns.current_user.id))}
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :changeset, changeset)}
+    end
+  end
+
+  @impl true
+  def handle_info({:delete_source_error, source}, socket) do
+    {:noreply, socket}
+  end
+
   def handle_info({:source_ids_for_update, source_ids}, socket) do
     Enum.each(source_ids, fn source_id -> send(self(), {:load_data, source_id}) end)
     

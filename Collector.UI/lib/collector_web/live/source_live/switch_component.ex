@@ -12,7 +12,7 @@ defmodule CollectorWeb.SourceLive.SwitchComponent do
       <label 
         id={@id}
         class="switch"
-        phx-click="toggle-switch"
+        phx-click="switch-source"
         phx-value-id={@source_id}
       >
         <span 
