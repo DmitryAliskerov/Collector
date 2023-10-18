@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
 <h1>Listing Sources</h1>
 
 <%= if @live_action in [:new, :edit] do %>
@@ -16,7 +18,7 @@
 <div>
   <div id="sources">
     <%= for source <- @sources do %>
-      <%= live_component CollectorWeb.SourceLive.SourceComponent, id: source.id, source: source %>
+      <%= live_component CollectorWeb.SourceLive.SourceComponent, id: CollectorWeb.SourceLive.Index.get_source_id(source.id), source: source, trash_anim: false %>
     <% end %>
   </div>
 </div>

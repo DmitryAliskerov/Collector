@@ -15,7 +15,7 @@ defmodule CollectorWeb.SourceLive.Index do
     Phoenix.PubSub.subscribe(Collector.PubSub, "result_update_user:#{socket.assigns.current_user.id}")
     Phoenix.PubSub.subscribe(Collector.PubSub, "change_source_answer")
 
-    {:ok, assign(socket, :sources, sources), temporary_assigns: [sources: []]}
+    {:ok, assign(socket, :sources, sources), temporary_assigns: [sources: nil]}
   end
 
   @impl true
@@ -42,34 +42,10 @@ defmodule CollectorWeb.SourceLive.Index do
   end
 
   @impl true
-  def handle_info({:create_source_ok, source}, socket) do
-    IO.inspect "Source was created. Source_id: #{source.id}"
-
-    {:noreply, socket}
-  end
-
-  def handle_info({:switch_source_error, source}, socket) do
-    IO.inspect "Source was not created."
-
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_info({:switch_source_ok, source, new_enabled_state}, socket) do
-    case Recordings.update_source(source, %{enabled: new_enabled_state}) do
-      {:ok, _} ->
-        IO.inspect "Source was updated. Source_id: #{source.id}, new_enabled_state: #{new_enabled_state}"
-        send_update CollectorWeb.SourceLive.SwitchComponent, id: get_switch_id(source.id), enabled: new_enabled_state, waiting: false
-        {:noreply, socket}
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :changeset, changeset)}
-    end
-  end
-
   def handle_event("switch-source", %{"id" => source_id}, socket) do
     IO.inspect "Enable/Disable source. Source_id: #{source_id}"
 
-    send_update CollectorWeb.SourceLive.SwitchComponent, id: CollectorWeb.SourceLive.Index.get_switch_id(source_id), waiting: true
+    send_update CollectorWeb.SourceLive.SwitchComponent, id: get_switch_id(source_id), waiting: true
 
     source = Recordings.get_source!(source_id)
     new_enabled_state = !source.enabled
@@ -79,16 +55,10 @@ defmodule CollectorWeb.SourceLive.Index do
     {:noreply, socket}
   end
 
-  def handle_info({:switch_source_error, source, new_enabled_state}, socket) do
-    IO.inspect "Source was not updated. Source_id: #{source.id}, new_enabled_state: #{new_enabled_state}"
-    send_update CollectorWeb.SourceLive.SwitchComponent, id: get_switch_id(source.id), waiting: false
-
-    {:noreply, socket}
-  end
-
-  @impl true
   def handle_event("delete-source", %{"id" => source_id}, socket) do
     IO.inspect "Delete source. Source_id: #{source_id}"
+
+    send_update CollectorWeb.SourceLive.SourceComponent, id: get_source_id(source_id), trash_anim: true
 
     source = Recordings.get_source!(source_id)
 
@@ -102,34 +72,60 @@ defmodule CollectorWeb.SourceLive.Index do
   end
 
   @impl true
-  def handle_info({:delete_source_ok, source}, socket) do
-    case Recordings.delete_source(source) do
-      {:ok, _} ->
-        IO.inspect "Source was deleted. Source_id: #{source.id}"
-        {:noreply, assign(socket, :sources, Recordings.list_sources(socket.assigns.current_user.id))}
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :changeset, changeset)}
+  def handle_info(operation, socket) do
+    case operation do
+      {:create_source_ok, source} ->
+        IO.inspect "Source was created. Source_id: #{source.id}"
+        {:noreply, socket}
+
+      {:create_source_error, _} ->
+        IO.inspect "Source was not created."
+        {:noreply, socket}
+
+      {:switch_source_ok, source, new_enabled_state} ->
+        case Recordings.update_source(source, %{enabled: new_enabled_state}) do
+          {:ok, _} ->
+            IO.inspect "Source was updated. Source_id: #{source.id}, new_enabled_state: #{new_enabled_state}"
+            send_update CollectorWeb.SourceLive.SwitchComponent, id: get_switch_id(source.id), enabled: new_enabled_state, waiting: false
+            {:noreply, socket}
+          {:error, %Ecto.Changeset{} = changeset} ->
+            {:noreply, assign(socket, :changeset, changeset)}
+        end
+
+      {:switch_source_error, source, new_enabled_state} ->
+        IO.inspect "Source was not updated. Source_id: #{source.id}, new_enabled_state: #{new_enabled_state}"
+        send_update CollectorWeb.SourceLive.SwitchComponent, id: get_switch_id(source.id), waiting: false
+        {:noreply, socket}
+
+      {:delete_source_ok, source} ->
+        case Recordings.delete_source(source) do
+          {:ok, _} ->
+            IO.inspect "Source was deleted. Source_id: #{source.id}"
+            {:noreply, assign(socket, :sources, Recordings.list_sources(socket.assigns.current_user.id))}
+          {:error, %Ecto.Changeset{} = changeset} ->
+            send_update CollectorWeb.SourceLive.SourceComponent, id: get_source_id(source.source_id), trash_anim: false
+            {:noreply, assign(socket, :changeset, changeset)}
+        end
+
+      {:delete_source_error, source} ->
+        send_update CollectorWeb.SourceLive.SourceComponent, id: get_source_id(source.source_id), trash_anim: false
+        {:noreply, socket}
+
+      {:source_ids_for_update, source_ids} ->
+        Enum.each(source_ids, fn source_id -> send(self(), {:load_data, source_id}) end)
+        {:noreply, socket}
+
+      {:load_data, source_id} ->
+        results = list_data(source_id)
+        send_update CollectorWeb.SourceLive.DataComponent, id: get_data_id(source_id), loading: false, results: results
+        IO.inspect "Source: #{source_id} updated."
+        {:noreply, socket}
     end
   end
 
-  @impl true
-  def handle_info({:delete_source_error, source}, socket) do
-    {:noreply, socket}
+  def get_source_id(source_id) do
+    "source-#{source_id}"
   end
-
-  def handle_info({:source_ids_for_update, source_ids}, socket) do
-    Enum.each(source_ids, fn source_id -> send(self(), {:load_data, source_id}) end)
-    
-    {:noreply, socket}
-  end  
-
-  def handle_info({:load_data, source_id}, socket) do
-    results = list_data(source_id)
-    send_update CollectorWeb.SourceLive.DataComponent, id: "source-#{source_id}-data", loading: false, results: results
-    IO.inspect "Source: #{source_id} updated."
-    
-    {:noreply, socket}
-  end  
 
   def get_data_id(source_id) do
     "source-#{source_id}-data"
@@ -145,10 +141,6 @@ defmodule CollectorWeb.SourceLive.Index do
 
   defp list_data(source_id) do
     Recordings.list_data(source_id)
-  end
-
-  defp ternary(condition, true_val, false_val) do
-    if(condition, do: true_val, else: false_val)
   end
 
   on_mount {CollectorWeb.LiveAuth, :require_authenticated_user}

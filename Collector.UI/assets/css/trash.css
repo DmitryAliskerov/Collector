@@ -6,10 +6,7 @@
     width: 14px;
     height: 18px;
     border: 3px solid transparent;
-    box-shadow:
-        0 0 0 2px,
-        inset -2px 0 0,
-        inset 2px 0 0;
+    box-shadow: 0px 0px 2px 2px, inset -2px 0px 2px, inset 2px 0px 2px;
     border-bottom-left-radius: 1px;
     border-bottom-right-radius: 1px;
     margin-top: 4px;
@@ -24,7 +21,6 @@
     margin-left: 25px;
 }
 
-
 .gg-trash::after,
 .gg-trash::before {
     content: "";
@@ -32,6 +28,7 @@
     box-sizing: border-box;
     position: absolute
 }
+
 .gg-trash::before {
     width: 14px;
     height: 4px;
@@ -40,5 +37,25 @@
     border-top-left-radius: 2px;
     border-top-right-radius: 2px;
     top: -8px;
-    left: -3px
+    left: -3px;
+}
+
+.anim.gg-trash::before {
+    width: 14px;
+    height: 4px;
+    border: 2px solid;
+    border-bottom: transparent;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    top: -8px;
+    left: -3px;
+    animation: animtrash 0.6s linear infinite;
+}
+
+@keyframes animtrash {
+  0% { top: -8px }
+  25% { top: -7px }
+  50% { top: -8px }
+  75% { top: -9px }
+  100% { top: -8px }
 }

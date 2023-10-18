@@ -35,7 +35,8 @@ defmodule CollectorWeb.SourceLive.DataComponent do
       :chart,
       LinePlot.new(
 	dataset,
-	custom_x_formatter: &datetime_formatter/1))
+	custom_x_formatter: &datetime_formatter/1,
+        smoothed: false))
   end
 
   defp assign_dataset(%{assigns: %{source_data: source_data}} = socket) do
