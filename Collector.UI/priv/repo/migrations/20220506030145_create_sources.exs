@@ -8,6 +8,7 @@ defmodule Collector.Repo.Migrations.CreateSources do
       add :value, :string
       add :options, :string
       add :interval, :integer
+      add :enabled, :boolean
     end
   end
 end
