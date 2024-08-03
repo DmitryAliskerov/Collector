@@ -76,7 +76,8 @@ defmodule Collector.Recordings do
   end
 
   def list_data(source_id) do
-    with xs = [_|_] <- Data |> where([p], p.source_id == ^source_id) |> Repo.all do xs else _ -> [%{timestamp: NaiveDateTime.utc_now(), value: "0"}] end  
+    six_hours_ago = NaiveDateTime.utc_now() |> NaiveDateTime.add(-60 * 60 * 6)
+    with xs = [_|_] <- Data |> where([p], p.source_id == ^source_id and p.timestamp > ^six_hours_ago) |> Repo.all do xs else _ -> [%{timestamp: NaiveDateTime.utc_now(), value: "0"}] end
     |> Enum.map(&{&1.timestamp,  elem(Integer.parse(&1.value), 0)})
   end
 
