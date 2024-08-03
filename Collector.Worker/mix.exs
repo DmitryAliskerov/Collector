@@ -28,7 +28,7 @@ defmodule Worker.MixProject do
       {:ecto_sql, "~> 3.6"},
       {:postgrex, ">= 0.0.0"},
       {:oban, "~> 2.16.2"},
-      {:toolshed, ">= 0.0.0"}
+      {:toolshed, path: "fork_deps/toolshed"}
     ]
   end
 
