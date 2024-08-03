@@ -2,8 +2,8 @@ import Config
 
 # Configure your database
 config :collector, Collector.Repo,
-  url: "postgresql://collector_user:hFWYoqqxsVuCNdQmPJNUK6vRBr4c111s@dpg-cqjp7d0gph6c739bgv30-a.frankfurt-postgres.render.com/collector_eu72",
-  maintenance_database: "collector_eu72",
+  url: "postgresql://collector_user:9McQDIWPjZyx2kx2pCbS47ZtxxEY5Uv1@dpg-cqn147o8fa8c73ajpn1g-a.frankfurt-postgres.render.com/collector_ezjm",
+  maintenance_database: "collector_ezjm",
   ssl: true,
   ssl_opts: [
     keyfile: "priv/cert/key.pem",
