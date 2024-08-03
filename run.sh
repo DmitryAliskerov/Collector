@@ -1,0 +1,1 @@
+(cd Collector.Worker; iex --name "worker@127.0.0.1" --cookie cookie_long_string -S mix) & (cd Collector.UI; iex --name "ui@127.0.0.1" --cookie cookie_long_string -S mix phx.server)

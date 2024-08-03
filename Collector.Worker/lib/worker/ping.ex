@@ -10,7 +10,7 @@ defmodule Collector.Worker.Ping do
 
     with {:ok, result} <- perform(%{args: %{"url" => url}}) do
         timestamp = NaiveDateTime.utc_now()
-        IO.inspect "Ping #{url} => Respone time: #{result}"
+        IO.inspect "Ping #{url} => Respone time: #{result} ms"
 
         Collector.Recordings.create_data(%{
           source_id: source_id,
@@ -25,7 +25,8 @@ defmodule Collector.Worker.Ping do
   end
 
   def perform(%{args: %{"url" => url}}) do
-    {:ok, Toolshed.tcping_once(url)}
+
+    {:ok, Toolshed.tcping_result_ms(url) }
   end
 
 end

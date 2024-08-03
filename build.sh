@@ -1,0 +1,1 @@
+(cd Collector.Worker; mix setup) & (cd Collector.UI; mix setup)
