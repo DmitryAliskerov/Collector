@@ -10,22 +10,22 @@ defmodule Collector.Recordings do
   alias Collector.Recordings.Data
 
   def clear_jobs() do
-    query = "TRUNCATE TABLE oban_jobs RESTART IDENTITY CASCADE"
+    query = "delete from oban_jobs; delete from sqlite_sequence where name='oban_jobs';"
     Ecto.Adapters.SQL.query!(Repo, query, [])
   end
 
   def clear_users() do
-    query = "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
+    query = "delete from users; delete from sqlite_sequence where name='users';"
     Ecto.Adapters.SQL.query!(Repo, query, [])
   end
 
   def clear_sources() do
-    query = "TRUNCATE TABLE sources RESTART IDENTITY CASCADE"
+    query = "delete from sources; delete from sqlite_sequence where name='sources';"
     Ecto.Adapters.SQL.query!(Repo, query, [])
   end
 
   def clear_data() do
-    query = "TRUNCATE TABLE data RESTART IDENTITY CASCADE"
+    query = "delete from data; delete from sqlite_sequence where name='data';"
     Ecto.Adapters.SQL.query!(Repo, query, [])
   end
 

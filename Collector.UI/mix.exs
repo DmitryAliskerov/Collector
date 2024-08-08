@@ -37,7 +37,8 @@ defmodule Collector.MixProject do
       {:bcrypt_elixir, "~> 0.12"},
       {:phoenix, "~> 1.6.7"},
       {:phoenix_ecto, "~> 4.4"},
-      {:ecto_sql, "~> 3.6"},
+      #{:ecto_sql, "~> 3.6"},
+      {:ecto_sqlite3, "~> 0.16"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 3.0"},
       {:phoenix_live_reload, "~> 1.2"},
@@ -65,8 +66,9 @@ defmodule Collector.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "ecto.setup"],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
+      "ecto.setup": ["ecto.create", "ecto.migrate"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
+      "ecto.seeds": ["run priv/repo/seeds.exs"],
       "assets.deploy": ["esbuild default --minify", "phx.digest"]
     ]
   end

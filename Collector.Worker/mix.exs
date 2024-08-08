@@ -25,7 +25,8 @@ defmodule Worker.MixProject do
     [
       {:libcluster, "~> 3.3"},
       {:phoenix, "~> 1.6.7"},
-      {:ecto_sql, "~> 3.6"},
+      #{:ecto_sql, "~> 3.6"},
+      {:ecto_sqlite3, "~> 0.16"},
       {:postgrex, ">= 0.0.0"},
       {:oban, "~> 2.16.2"},
       {:toolshed, path: "fork_deps/toolshed"}

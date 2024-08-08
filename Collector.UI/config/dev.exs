@@ -1,23 +1,27 @@
 import Config
 
 # Configure your database
-config :collector, Collector.Repo,
-  username: "postgres",
-  password: "postgres",
-  database: "postgres1",
-  hostname: "localhost",
+#config :collector, Collector.Repo,
+#  username: "postgres",
+#  password: "postgres",
+#  database: "postgres1",
+#  hostname: "localhost",
 #  url: "postgresql://collector_user:hFWYoqqxsVuCNdQmPJNUK6vRBr4c111s@dpg-cqjp7d0gph6c739bgv30-a.frankfurt-postgres.render.com/collector_eu72",
 #  maintenance_database: "collector_eu72",
 #  ssl: true,
 #  ssl_opts: [keyfile: "priv/cert/key.pem", certfile: "priv/cert/cer.pem", verify: :verify_none],
-  port: 5432,
-  tcp_keepalives_idle: 300,
-  tcp_keepalives_interval: 60,
-  tcp_keepalives_count: 5,
+#  port: 5432,
+#  tcp_keepalives_idle: 300,
+#  tcp_keepalives_interval: 60,
+#  tcp_keepalives_count: 5,
+#  queue_target: 5000,
+#  pool_size: 10
+ 
+config :collector, Collector.Repo,
+  database: "../database.db",
   queue_target: 5000,
   pool_size: 10
-
-
+ 
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #
@@ -27,7 +31,7 @@ config :collector, Collector.Repo,
 config :collector, CollectorWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {0, 0, 0, 0}, port: 80],
+  http: [ip: {0, 0, 0, 0}, port: 4000],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,

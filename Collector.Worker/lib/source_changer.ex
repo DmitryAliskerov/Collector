@@ -1,7 +1,7 @@
 defmodule Collector.SourceChanger do
   use GenServer
-
-  import Ecto.Query, only: [from: 2]
+  
+  import Ecto.Query
 
   alias Collector.Recordings.Source
   alias Collector.Repo
@@ -113,9 +113,10 @@ defmodule Collector.SourceChanger do
       "URL" ->
         args = %{url: source.value, interval: source.interval, source_id: source.id, user_id: source.user_id}
 
-        jobs_query = from job in Oban.Job,
-            where: job.worker == "Collector.Worker.Ping" and job.args == ^args and job.state == "scheduled",
-            select: job
+        jobs_query = Oban.Job
+          |> Ecto.Query.where(worker: "Collector.Worker.Ping")
+          |> Ecto.Query.where(state: "scheduled")
+          |> Ecto.Query.where(args: ^args)
 
         case jobs_query |> Oban.cancel_all_jobs() do
           {:ok, counter} -> IO.inspect "Oban jobs canceled: #{counter}"
@@ -135,9 +136,10 @@ defmodule Collector.SourceChanger do
       "URL" ->
         args = %{url: source.value, interval: source.interval, source_id: source.id, user_id: source.user_id}
 
-        jobs_query = from job in Oban.Job,
-            where: job.worker == "Collector.Worker.Ping" and job.args == ^args and job.state == "scheduled",
-            select: job
+        jobs_query = Oban.Job
+          |> Ecto.Query.where(worker: "Collector.Worker.Ping")
+          |> Ecto.Query.where(state: "scheduled")
+          |> Ecto.Query.where(args: ^args)
 
         case jobs_query |> Oban.cancel_all_jobs() do
           {:ok, counter} -> IO.inspect "Oban jobs canceled: #{counter}"
