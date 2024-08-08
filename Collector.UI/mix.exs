@@ -65,8 +65,9 @@ defmodule Collector.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "ecto.setup"],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
+      "ecto.setup": ["ecto.create", "ecto.migrate"],
+      "ecto.seeds": ["run priv/repo/seeds.exs"],
+      "ecto.reset": ["ecto.drop", "ecto.setup", "ecto.seeds"],
       "assets.deploy": ["esbuild default --minify", "phx.digest"]
     ]
   end

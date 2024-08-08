@@ -1,8 +1,8 @@
 import Config
 
 config :worker, Collector.Repo,
-  url: "postgresql://collector_user:9McQDIWPjZyx2kx2pCbS47ZtxxEY5Uv1@dpg-cqn147o8fa8c73ajpn1g-a.frankfurt-postgres.render.com/collector_ezjm",
-  maintenance_database: "collector_ezjm",
+  url: "postgresql://pingrobotdb_owner:endpoint=ep-royal-smoke-a29ipfm6;56uhRPFJCvEq@ep-royal-smoke-a29ipfm6.eu-central-1.aws.neon.tech/pingrobotdb",
+  maintenance_database: "pingrobotdb",
   ssl: true,
   ssl_opts: [
     keyfile: "priv/cert/key.pem",
